@@ -114,6 +114,14 @@ gphi = gradtrial_expr.eval(mesh, np.arange(num_cells, dtype=np.int32)).reshape(n
 cellwise_alpha = alpha_expr.eval( mesh, np.arange(num_cells, dtype=np.int32))
 
 
+
+expr_test =  dolfinx.fem.Expression( 1 , q_facet, comm=mesh.comm)
+
+
+
+print( expr_test.eval( mesh, np.arange(num_cells, dtype=np.int32)))
+
+
 # Follows implementation of https://github.com/pdelab/pyeafe
  
 
@@ -173,6 +181,9 @@ for cell in range(num_cells):
 A1.assemble()
 A1.convert("dense")
 print( A1.getDenseArray() ) 
+
+
+#Nedlec = dolfinx.fem.functionspace(mesh, ("N1curl", 1))
 
 
 

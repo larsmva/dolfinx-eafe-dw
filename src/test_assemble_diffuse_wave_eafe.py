@@ -229,15 +229,13 @@ T_j.convert("dense")
 neatprint( T_j.getDenseArray() ) 
 
 
-
-
-
-
+# Implement dw_rhs
 assemble_dw_lhs(T_f.handle, x, unrolled_map, phi, gphi, detJ, alpha_f, psi_f, PETSc.InsertMode.ADD_VALUES)   
 T_f.assemble()
  
 # dolfinx.la.create_petsc_vector(Vh.dofmap.index_map, Vh.dofmap.index_map_bs) 
 
+# Better method 
 h_petsc = assemble_vector( dolfinx.fem.form( h*v*ufl.dx )) 
  
 b_f  = T_f*h_petsc  
@@ -253,22 +251,24 @@ b += b_f
     
     F(v;h)   = (A_f + T_f)*h + b 
 
-    b = -(h_n,v) - dt*(f,v)  
+    b = - (h_n,v) - dt*(f,v)  
 
 """
 
 sol = T_j.createVecRight()
-
 ksp = PETSc.KSP().create()
 ksp.setOperators(T_j)
 ksp.setType('preonly')
 ksp.setConvergenceHistory()
-
 ksp.getPC().setType('lu')
 
 ksp.solve(b, sol )
 
 print( sol.norm())
+
+
+
+
 
 exit()
 
@@ -278,7 +278,63 @@ plt.semilogy(ksp.getConvergenceHistory())
 
 plt.show()
 
+"""
 
+    
+    
+    F(v;h) = (h,v) + dt*h^{5/3}/||grad(H)||^{1/2}( grad(H), grad(v) ) - (hn,v) - dt*(f,v) - dt*h^{5/3}/||grad(H)||^{1/2}( grad(H)*n,v)
+  
+    2D - 1D coupling :     
+    
+                   s(v;h)   =   dt*h^{5/3}/||grad(H)||^{1/2}( grad(H)*n,v)
+                    
+                   eafe :  
+                            beta = h^{2/3}/||grad(H)||^{1/2}grad(z)
+
+                            alpha = h^{5/3}/||grad(H)||^{1/2}
+        
+                            psi : = grad(z)/ h
+
+                   ==>   s(v;h)  = [ dt*alpha*B(psi*n)*v ] *h 
+                    
+
+
+                   S(u,v;h)  = ([dt*(5/3)*h^{2/3}/||grad(H)||^{1/2} grad(H)*u +(1/2)*h^{5/3}/||grad(H)||^{1/2} grad(u)],n*v)                 
+                    
+                   eafe :  
+                            beta = h^{2/3}/||grad(H)||^{1/2}grad(z)
+                    
+                            alpha = h^{5/3}/||grad(H)||^{1/2}
+        
+                            psi : = grad(z)/ h
+
+                   ==>   S(u,v;h)  = dt*alpha*B(psi*n)*v      
+
+   1D has a width, 
+   
+   
+   Step 1 : 
+   
+             Assemble system for 1D : 
+                                     - find all marked edges and map to dofs 
+                                     - implement aefe 
+                                     - assemble system   
+             
+             
+                                      
+   Step 2 : 
+             Assemble coupling term 2D-1D 
+                                     - duplicate dofs 
+                                     - implemente eafe 
+                                     - assemble system 
+             
+             
+             
+   Step 3 : 
+             Assemble coupling term 1D-2D           
+                       
+   
+"""
 
 
 
